@@ -1,0 +1,58 @@
+# Caddy serves the built interface and proxies the API on one origin
+# (SVX-TECH-001 "Architecture at a glance").
+#
+# Same-origin is what lets session cookies and CSRF work without any CORS
+# relaxation — there is no cross-origin configuration to accidentally widen.
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# Caddy obtains and renews the certificate automatically.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Cross-Origin-Opener-Policy "same-origin"
+		# The SPA loads only its own bundle. No third-party scripts, no inline
+		# script, and nothing may frame this application.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		-Server
+	}
+
+	# Django owns the API, the account pages and the probes.
+	@backend path /api/* /accounts/* /internal-admin/* /static/* /healthz /readyz
+	handle @backend {
+		reverse_proxy api:8000 {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Everything else is the SPA.
+	handle {
+		root * /srv/web
+
+		# Vite emits content-hashed filenames, so these are safe to cache hard.
+		@hashed path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+		# index.html must never be cached: a stale shell would keep loading a
+		# bundle that no longer exists after a deploy.
+		@html path / /index.html
+		header @html Cache-Control "no-cache, must-revalidate"
+
+		# Client-side routing: unknown paths fall back to the shell.
+		try_files {path} /index.html
+		file_server
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+		# Query strings can carry filter values; the path alone is enough.
+		format json
+	}
+}

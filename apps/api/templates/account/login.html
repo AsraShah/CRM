@@ -1,0 +1,33 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% comment %}
+  allauth's sign-in page, without its "please sign up first" line: access is by
+  invitation only (CRM01), so there is no sign-up to send anyone to. The layout
+  footer says how to get access instead.
+{% endcomment %}
+{% block head_title %}
+    {% trans "Sign in" %}
+{% endblock head_title %}
+{% block content %}
+    {% element h1 %}
+        {% trans "Sign in" %}
+    {% endelement %}
+    {% element p %}
+        {% trans "Use the email address your invitation was sent to." %}
+    {% endelement %}
+    {% url 'account_login' as login_url %}
+    {% element form form=form method="post" action=login_url tags="entrance,login" %}
+        {% slot body %}
+            {% csrf_token %}
+            {% element fields form=form unlabeled=True %}
+            {% endelement %}
+            {{ redirect_field }}
+        {% endslot %}
+        {% slot actions %}
+            {% element button type="submit" tags="prominent,login" %}
+                {% trans "Sign in" %}
+            {% endelement %}
+        {% endslot %}
+    {% endelement %}
+{% endblock content %}

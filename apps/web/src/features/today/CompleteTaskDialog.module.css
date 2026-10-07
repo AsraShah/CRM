@@ -1,0 +1,140 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgb(10 12 16 / 55%);
+  z-index: 50;
+}
+
+.dialog {
+  width: min(34rem, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-5);
+  background: var(--colour-surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.dialog h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.context {
+  margin: var(--space-1) 0 var(--space-4);
+  color: var(--colour-text-muted);
+  font-size: var(--text-sm);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field > span {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  padding: var(--space-2);
+  font: inherit;
+  color: var(--colour-text);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border-strong);
+  border-radius: var(--radius-sm);
+  min-height: 2.75rem;
+}
+
+.fieldset {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fieldset legend {
+  padding: 0 var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.primary,
+.secondary {
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 2.75rem;
+}
+
+.primary {
+  background: var(--colour-accent);
+  color: var(--colour-accent-text);
+  border: 1px solid transparent;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.secondary {
+  background: transparent;
+  color: var(--colour-text);
+  border: 1px solid var(--colour-border-strong);
+}
+
+.error,
+.conflict {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.error {
+  background: var(--colour-danger-subtle);
+  color: var(--colour-danger);
+  border: 1px solid var(--colour-danger);
+}
+
+.conflict {
+  background: var(--colour-warning-subtle);
+  color: var(--colour-warning);
+  border: 1px solid var(--colour-warning);
+}
+
+.fieldError {
+  color: var(--colour-danger);
+  font-size: var(--text-xs);
+}

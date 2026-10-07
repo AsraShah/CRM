@@ -1,0 +1,327 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.listPane {
+  position: sticky;
+  top: var(--space-5);
+  max-height: calc(100vh - 2 * var(--space-5));
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .listPane {
+    position: static;
+    max-height: 24rem;
+  }
+}
+
+/* ---------- Ticket list ---------- */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list > li + li {
+  border-top: 1px solid var(--colour-border);
+}
+
+.ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font: inherit;
+  color: var(--colour-text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.ticket:hover {
+  background: var(--colour-surface-hover);
+}
+
+.ticketActive,
+.ticketActive:hover {
+  background: var(--colour-accent-subtle);
+  box-shadow: inset 3px 0 0 var(--colour-accent);
+}
+
+.ticketTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ticketTitle {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ticketDate {
+  flex: none;
+  font-size: var(--text-xs);
+  color: var(--colour-text-subtle);
+}
+
+.ticketClient {
+  padding-left: calc(0.5rem + var(--space-2));
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+}
+
+.ticketMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding-left: calc(0.5rem + var(--space-2));
+}
+
+.priority {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--colour-neutral-dot);
+}
+
+.priority_high {
+  background: var(--colour-warning-dot);
+}
+
+.priority_critical {
+  background: var(--colour-danger-dot);
+}
+
+.priority_low {
+  background: var(--colour-border-strong);
+}
+
+/* ---------- Detail ---------- */
+
+.detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailHeader {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--colour-border);
+}
+
+.detailHeading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.detailHeading p {
+  margin: 0;
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.description {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  background: var(--colour-surface-sunken);
+  border-top: 1px solid var(--colour-border);
+}
+
+.threadHeading {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.comments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.commentInternal,
+.commentClient {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.commentBubble {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  border-top-left-radius: var(--radius-sm);
+  background: var(--colour-surface);
+}
+
+/* Internal notes: lock, label, and a distinct tinted, dashed bubble. */
+.commentInternal .commentBubble {
+  background: var(--colour-warning-subtle);
+  border: 1px dashed color-mix(in srgb, var(--colour-warning) 45%, transparent);
+}
+
+.commentHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xs);
+}
+
+.commentAuthor {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.visibilityInternal,
+.visibilityClient {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.4rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.visibilityInternal {
+  color: var(--colour-warning);
+  background: color-mix(in srgb, var(--colour-warning) 12%, transparent);
+}
+
+.visibilityClient {
+  color: var(--colour-info);
+  background: var(--colour-info-subtle);
+}
+
+.commentTime {
+  margin-left: auto;
+  color: var(--colour-text-subtle);
+}
+
+.commentBody {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Composer ---------- */
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.composerPublic {
+  border-color: var(--colour-info-dot);
+  box-shadow: 0 0 0 3px var(--colour-info-subtle);
+}
+
+.composer textarea {
+  border: 0;
+  box-shadow: none;
+  padding: var(--space-1);
+}
+
+.composer textarea:focus {
+  box-shadow: none;
+}
+
+.composerBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.visibilityChoice {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+  padding: 3px;
+  background: var(--colour-surface-sunken);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+}
+
+.seg,
+.segActive,
+.segDisabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: calc(var(--control-h) - 8px);
+  padding: 0 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--colour-text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.segActive {
+  color: var(--colour-text);
+  background: var(--colour-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.segDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.seg:has(input:focus-visible),
+.segActive:has(input:focus-visible) {
+  outline: var(--focus-outline);
+  outline-offset: 1px;
+}

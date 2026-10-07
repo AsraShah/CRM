@@ -1,0 +1,13 @@
+.row {
+  cursor: pointer;
+}
+
+.contact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filter select {
+  min-width: 10rem;
+}

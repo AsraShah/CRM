@@ -1,0 +1,205 @@
+.period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.period label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--colour-text-muted);
+}
+
+/* Three panels, never one combined figure. The layout is the requirement. */
+.money {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+}
+
+.panel {
+  --panel-accent: var(--colour-accent);
+  --panel-accent-subtle: var(--colour-accent-subtle);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--panel-accent);
+}
+
+.panelInfo {
+  --panel-accent: var(--colour-info-dot);
+  --panel-accent-subtle: var(--colour-info-subtle);
+}
+
+.panelCash {
+  --panel-accent: var(--colour-success-dot);
+  --panel-accent-subtle: var(--colour-success-subtle);
+}
+
+.panelTop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.panelIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--panel-accent);
+  background: var(--panel-accent-subtle);
+  border-radius: var(--radius-md);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+
+.panelCaption {
+  margin: 0.125rem 0 0;
+  color: var(--colour-text-muted);
+  font-size: var(--text-sm);
+}
+
+.amounts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.amount {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+}
+
+.unknown {
+  color: var(--colour-warning);
+  font-weight: 600;
+}
+
+.noValue {
+  margin: 0;
+  color: var(--colour-text-muted);
+  font-style: italic;
+}
+
+.footnote {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--colour-text-muted);
+}
+
+.panelButton {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.basisNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+}
+
+.basisNote svg {
+  flex: none;
+  margin-top: 0.125rem;
+  color: var(--colour-info);
+}
+
+.attentionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-3);
+}
+
+.attentionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  text-align: left;
+  color: var(--colour-text);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.attentionItem:hover {
+  border-color: var(--colour-warning-dot);
+  box-shadow: var(--shadow-sm);
+}
+
+.attentionItem svg {
+  color: var(--colour-text-subtle);
+}
+
+.attentionCount {
+  display: grid;
+  place-items: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--colour-warning);
+  background: var(--colour-warning-subtle);
+  border-radius: var(--radius-md);
+}
+
+.attentionLabel {
+  flex: 1;
+  font-weight: 500;
+}

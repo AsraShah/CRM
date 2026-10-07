@@ -1,0 +1,182 @@
+/* Kanban board: four columns on wide screens, horizontal scroll in between,
+   stacked on a phone. */
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(15rem, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .board {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--colour-surface-sunken);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+}
+
+.columnHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) var(--space-1) 0;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--colour-text-muted);
+}
+
+.columnCount {
+  margin-left: auto;
+  padding: 0 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--colour-text-muted);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: 999px;
+}
+
+.stageDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+}
+
+.discovery {
+  background: var(--colour-info-dot);
+}
+
+.qualified {
+  background: var(--colour-accent);
+}
+
+.proposal {
+  background: var(--colour-warning-dot);
+}
+
+.negotiation {
+  background: var(--colour-success-dot);
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition:
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.card:hover {
+  border-color: var(--colour-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardHeading {
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cardContact {
+  margin: 0.125rem 0 0;
+  color: var(--colour-text-muted);
+  font-size: var(--text-sm);
+}
+
+.value {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.unknown {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--colour-text-muted);
+  font-style: italic;
+}
+
+.stale {
+  color: var(--colour-warning);
+  font-weight: 600;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-4) var(--space-2);
+  text-align: center;
+  color: var(--colour-text-subtle);
+  font-size: var(--text-sm);
+  border: 1px dashed var(--colour-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.stageForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--colour-border);
+}
+
+.stageRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.stageSelect {
+  flex: 1;
+  min-width: 0;
+}
+
+.stageSelect select {
+  width: 100%;
+  min-height: var(--control-h-sm);
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: var(--text-sm);
+}

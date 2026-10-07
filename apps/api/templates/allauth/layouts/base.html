@@ -1,0 +1,293 @@
+{% load i18n %}<!DOCTYPE html>
+{% comment %}
+  Every allauth page (sign in, two-factor, password reset, recovery codes)
+  renders through this layout. It carries the interface's own design tokens,
+  in the scalevexo.com brand, so the first screen anyone sees matches the
+  application behind it, in light and dark, at 360px and at 200% zoom
+  (SVX-PRD-001 section 7.3).
+
+  Signed out, it is a split screen: the brand's black hero beside the form.
+  Signed in (two-factor setup, password change), a black bar sits above the
+  card. The Inter font and the emblem come from the web app's own origin
+  (/fonts, /brand), which the Content-Security-Policy allows and which both
+  Caddy and the Vite dev server serve; no third-party request is made.
+{% endcomment %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block head_title %}{% endblock head_title %} · ScaleVexo</title>
+    <style>
+      @font-face {
+        font-family: 'Inter Variable';
+        font-style: normal;
+        font-display: swap;
+        font-weight: 100 900;
+        src: url('/fonts/inter-latin-wght.woff2') format('woff2-variations');
+      }
+      :root {
+        color-scheme: light dark;
+        --canvas: #f5f6f8;
+        --surface: #ffffff;
+        --sunken: #f9fafb;
+        --border: #e4e7ec;
+        --border-strong: #cfd4dc;
+        --text: #0b1220;
+        --muted: #475467;
+        --accent: #1d4ed8;
+        --accent-hover: #1e40af;
+        --accent-text: #ffffff;
+        --accent-subtle: #eef3ff;
+        --danger: #b42318;
+        --danger-subtle: #fef3f2;
+        --success: #067647;
+        --success-subtle: #ecfdf3;
+        --focus: 2px solid #1d4ed8;
+        --ring: 0 0 0 3px rgb(29 78 216 / 22%);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas: #0a0a0a;
+          --surface: #141414;
+          --sunken: #101010;
+          --border: #262626;
+          --border-strong: #3a3a3a;
+          --text: #fafafa;
+          --muted: #a1a1a1;
+          --accent: #60a5fa;
+          --accent-hover: #93c5fd;
+          --accent-text: #0a0a0a;
+          --accent-subtle: #10213f;
+          --danger: #fda29b;
+          --danger-subtle: #3a1512;
+          --success: #75e0a7;
+          --success-subtle: #0d2b1c;
+          --focus: 2px solid #60a5fa;
+          --ring: 0 0 0 3px rgb(96 165 250 / 30%);
+        }
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter Variable', 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        color: var(--text);
+        background: var(--canvas);
+        -webkit-font-smoothing: antialiased;
+      }
+      :focus-visible { outline: var(--focus); outline-offset: 2px; }
+
+      /* ---- Signed out: split screen ---- */
+      .split { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+      .hero {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 2rem;
+        padding: 2rem clamp(1.5rem, 5vw, 4.5rem);
+        color: #fff;
+        background:
+          radial-gradient(40rem 28rem at 85% 110%, rgb(29 78 216 / 45%), transparent 70%),
+          radial-gradient(30rem 20rem at 0% 0%, rgb(59 130 246 / 14%), transparent 70%),
+          #000;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgb(255 255 255 / 4%) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(255 255 255 / 4%) 1px, transparent 1px);
+        background-size: 48px 48px;
+        -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+        mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+        pointer-events: none;
+      }
+      .hero > * { position: relative; }
+      /* The generic paragraph colour is for the card; the hero is white. */
+      .hero p { color: #fff; }
+      .brand { display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.03em; color: #fff; text-decoration: none; }
+      .brand img { width: 2rem; height: 2rem; object-fit: contain; }
+      .hero-body { max-width: 34rem; }
+      .eyebrow {
+        display: inline-flex; align-items: center; gap: 0.625rem; margin: 0 0 1rem;
+        font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      }
+      .eyebrow::before { content: ''; width: 0.4375rem; height: 0.4375rem; background: #3b82f6; }
+      .hero-title { margin: 0; font-size: clamp(2rem, 3.6vw, 3.25rem); font-weight: 600; line-height: 1.05; letter-spacing: -0.04em; }
+      .hero-title span { color: #93b4ff; }
+      .hero-list { display: flex; flex-direction: column; gap: 0.75rem; margin: 2rem 0 0; padding: 0; list-style: none; counter-reset: item; font-size: 1rem; color: rgb(255 255 255 / 85%); }
+      .hero-list li { display: flex; align-items: baseline; gap: 0.75rem; counter-increment: item; }
+      .hero-list li::before { content: counter(item, decimal-leading-zero); font-family: ui-monospace, 'Cascadia Mono', monospace; font-size: 0.75rem; font-weight: 700; color: #6ea0ff; }
+      .hero .hero-foot { margin: 0; font-size: 0.75rem; color: rgb(255 255 255 / 60%); }
+      .form-side { display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+
+      /* ---- Signed in: black bar ---- */
+      .bar {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem;
+        padding: 0.875rem clamp(1rem, 4vw, 3rem);
+        background: #000;
+      }
+      .bar .brand { font-size: 1.0625rem; }
+      .bar .brand img { width: 1.625rem; height: 1.625rem; }
+      .account-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; font-size: 0.875rem; }
+      .account-nav a { color: #d4d4d4; text-decoration: none; font-weight: 500; }
+      .account-nav a:hover { color: #fff; }
+      .account-main { display: flex; justify-content: center; padding: 3rem 1rem; }
+
+      /* ---- The card and allauth's elements ---- */
+      .card {
+        width: min(28rem, 100%);
+        padding: 2rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-top: 3px solid var(--accent);
+        border-radius: 12px;
+        box-shadow: 0 12px 32px -12px rgb(11 18 32 / 18%), 0 2px 6px rgb(11 18 32 / 5%);
+      }
+      h1 { margin: 0 0 0.5rem; font-size: 2rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.035em; }
+      h2 { margin: 1.5rem 0 0.5rem; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; }
+      p { margin: 0 0 1rem; color: var(--muted); }
+      a { color: var(--accent); text-underline-offset: 3px; }
+      form { display: flex; flex-direction: column; gap: 0.25rem; margin: 1.25rem 0 0; }
+      form p { display: flex; flex-direction: column; gap: 0.375rem; margin: 0 0 0.875rem; color: var(--text); }
+      label { font-size: 0.8125rem; font-weight: 600; color: var(--text); }
+      input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+        width: 100%;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.875rem;
+        font: inherit;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 6px;
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+      input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+      input[disabled] { background: var(--sunken); color: var(--muted); font-family: ui-monospace, 'Cascadia Mono', monospace; }
+      input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--accent); }
+      /* Checkboxes sit beside their label, not above it. */
+      form p:has(input[type="checkbox"]) { flex-direction: row; align-items: center; gap: 0.5rem; }
+      form p span { font-size: 0.75rem; color: var(--muted); }
+      button, .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.75rem;
+        padding: 0.5rem 1.375rem;
+        font: inherit;
+        font-weight: 650;
+        color: var(--accent-text);
+        background: var(--accent);
+        border: 1px solid transparent;
+        border-radius: 999px;
+        box-shadow: 0 8px 20px -8px rgb(29 78 216 / 55%);
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 140ms ease;
+      }
+      button:hover, .button:hover { background: var(--accent-hover); }
+      form button { width: 100%; margin-top: 0.75rem; }
+      ul { padding-left: 1.25rem; }
+      section { margin-top: 1rem; }
+      section ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .errorlist {
+        list-style: none;
+        margin: 0 0 0.75rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        color: var(--danger);
+        background: var(--danger-subtle);
+        border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+        border-left: 3px solid var(--danger);
+        border-radius: 6px;
+      }
+      .messages { list-style: none; margin: 0 0 1rem; padding: 0; }
+      .messages li {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        color: var(--success);
+        background: var(--success-subtle);
+        border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+        border-left: 3px solid var(--success);
+        border-radius: 6px;
+      }
+      /* QR codes need a white quiet zone in dark mode too. */
+      .card img { display: block; max-width: 12rem; margin: 0 auto 1rem; background: #fff; padding: 0.5rem; border-radius: 8px; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+      th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+      .footnote { margin: 1.5rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--muted); text-align: center; }
+
+      @media (max-width: 900px) {
+        .split { grid-template-columns: minmax(0, 1fr); align-content: start; }
+        .hero { padding: 1.5rem 1rem 2rem; }
+        .hero-title { font-size: 1.75rem; }
+        .hero-list, .hero-foot { display: none; }
+        .form-side { padding: 0 1rem 2rem; margin-top: -1rem; }
+      }
+      @media (max-width: 480px) {
+        .card { padding: 1.25rem; }
+        .account-main { padding: 1.5rem 1rem; }
+        h1 { font-size: 1.625rem; }
+      }
+    </style>
+    {% block extra_head %}{% endblock extra_head %}
+  </head>
+  <body>
+    {% block body %}
+      {# One content block, two wrappers: Django allows each block only once. #}
+      {% if user.is_authenticated %}
+        <header class="bar">
+          <a class="brand" href="/today"><img src="/brand/emblem.webp" alt="" width="26" height="26">ScaleVexo</a>
+          <nav class="account-nav" aria-label="Account">
+            <a href="/today">{% trans "Back to the app" %}</a>
+            {% url 'mfa_index' as mfa_url_ %}
+            {% if mfa_url_ %}<a href="{{ mfa_url_ }}">{% trans "Two-factor authentication" %}</a>{% endif %}
+            {% url 'account_change_password' as change_password_url_ %}
+            {% if change_password_url_ %}<a href="{{ change_password_url_ }}">{% trans "Change password" %}</a>{% endif %}
+            {% url 'account_logout' as logout_url_ %}
+            {% if logout_url_ %}<a href="{{ logout_url_ }}">{% trans "Sign out" %}</a>{% endif %}
+          </nav>
+        </header>
+      {% else %}
+        <div class="split">
+          <aside class="hero">
+            <span class="brand"><img src="/brand/emblem.webp" alt="" width="32" height="32">ScaleVexo</span>
+            <div class="hero-body">
+              <p class="eyebrow">{% trans "Sales to delivery" %}</p>
+              <p class="hero-title">{% trans "One system for every lead, deal, project" %} <span>{% trans "and handover." %}</span></p>
+              <ol class="hero-list">
+                <li>{% trans "Follow-ups that never slip" %}</li>
+                <li>{% trans "Handovers delivery can accept" %}</li>
+                <li>{% trans "Figures nobody has to rebuild" %}</li>
+              </ol>
+            </div>
+            <p class="hero-foot">{% trans "ScaleVexo CRM · internal system" %}</p>
+          </aside>
+      {% endif %}
+          <main id="main" class="{% if user.is_authenticated %}account-main{% else %}form-side{% endif %}">
+            <div class="card">
+              {% if messages %}
+                <ul class="messages" role="status">
+                  {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+                </ul>
+              {% endif %}
+              {% block content %}{% endblock content %}
+              {% if not user.is_authenticated %}
+                {# Joining is invitation-only (CRM01): there is no sign-up link. #}
+                <p class="footnote">{% trans "Access is by invitation. Ask your administrator for a link." %}</p>
+              {% endif %}
+            </div>
+          </main>
+      {% if not user.is_authenticated %}
+        </div>
+      {% endif %}
+    {% endblock body %}
+    {% block extra_body %}{% endblock extra_body %}
+  </body>
+</html>

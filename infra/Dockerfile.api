@@ -1,0 +1,69 @@
+# API image (SVX-TECH-001 section 2.3).
+#
+# Built in CI and pinned by digest in the deployment manifest. Never built on
+# the pilot host: a bundler or compiler on a 2 GiB / 1 vCPU server is how the
+# pilot runs out of memory mid-deploy (section 11.3).
+
+# Pinned by digest, not by tag (section 2.3). A tag is a moving pointer: the
+# same Dockerfile would produce a different image next week, which makes a
+# reproducible build impossible and a rollback a guess.
+#
+# The tag is kept in the comment so a human can read what this is, and
+# infra/refresh-digests.sh updates both together.
+#   python:3.13-slim-bookworm  resolved 2026-09-29
+FROM python@sha256:2325bb286ec344af3e5898cc224b5844e2707ac6e26b1632516fd3edc84a5e26 AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+# libpq for psycopg. Nothing else: every extra package is attack surface on a
+# host with no network segmentation.
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y libpq5 curl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+WORKDIR /app
+
+# ---------------------------------------------------------------------------
+# Dependencies
+# ---------------------------------------------------------------------------
+FROM base AS deps
+
+COPY apps/api/pyproject.toml apps/api/uv.lock ./
+# --locked fails if the lockfile does not match pyproject, so a drifted
+# dependency stops the build rather than reaching production (section 1.3).
+RUN uv sync --locked --no-dev --no-install-project
+
+# ---------------------------------------------------------------------------
+# Runtime
+# ---------------------------------------------------------------------------
+FROM base AS runtime
+
+RUN groupadd --system --gid 1001 scalevexo \
+ && useradd --system --uid 1001 --gid scalevexo --create-home scalevexo
+
+COPY --from=deps --chown=scalevexo:scalevexo /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY --chown=scalevexo:scalevexo apps/api/ /app/
+
+RUN mkdir -p /app/private-files /app/staticfiles \
+ && chown -R scalevexo:scalevexo /app/private-files /app/staticfiles
+
+# Never run as root.
+USER scalevexo
+
+EXPOSE 8000
+
+# Liveness only; readiness is checked separately because it touches the
+# database (section 12.1).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD curl --fail --silent http://127.0.0.1:8000/healthz || exit 1
+
+CMD ["gunicorn", "config.wsgi:application", "--bind=0.0.0.0:8000", \
+     "--workers=1", "--threads=2", "--timeout=60"]

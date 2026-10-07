@@ -1,0 +1,367 @@
+/* Application shell: a black sidebar, as on scalevexo.com's navigation, beside
+   a near-white canvas. On phones the sidebar becomes a drawer behind a black
+   top bar. Works at 360px and 200% zoom. */
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+}
+
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  background: var(--colour-accent);
+  color: #fff;
+  border-radius: var(--radius-pill);
+}
+
+.skipLink:focus {
+  left: var(--space-4);
+  top: var(--space-3);
+}
+
+/* ---------- Sidebar ---------- */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-right: 1px solid var(--sidebar-border);
+  overflow-y: auto;
+}
+
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-5);
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.brandMark {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.brandName {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--sidebar-text-strong);
+  letter-spacing: -0.03em;
+}
+
+.workspace {
+  margin-top: 0.125rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--sidebar-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) var(--space-3);
+}
+
+.navGroup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navGroup + .navGroup {
+  margin-top: var(--space-5);
+}
+
+.navGroupEnd {
+  margin-top: auto !important;
+  padding-top: var(--space-5);
+}
+
+/* Group labels carry the brand's blue-square marker. */
+.navGroupLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-3);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--sidebar-muted);
+}
+
+.navGroupLabel::before {
+  content: '';
+  width: 0.3125rem;
+  height: 0.3125rem;
+  background: var(--sidebar-accent);
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 2.375rem;
+  padding: 0 var(--space-3);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.navLink:hover {
+  background: var(--sidebar-bg-hover);
+  color: var(--sidebar-text-strong);
+}
+
+.navLinkActive {
+  background: var(--sidebar-bg-active);
+  color: var(--sidebar-text-strong);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px #262626;
+}
+
+.navLinkActive::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 0.4375rem;
+  bottom: 0.4375rem;
+  width: 3px;
+  background: var(--sidebar-accent);
+}
+
+.navLinkActive svg {
+  color: var(--sidebar-accent);
+}
+
+.navLink:focus-visible,
+.signOut:focus-visible,
+.mfaWarning:focus-visible {
+  outline: 2px solid var(--sidebar-accent);
+  outline-offset: 1px;
+}
+
+.userCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-5);
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.userText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.userName {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--sidebar-text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userRole {
+  font-size: var(--text-xs);
+  color: var(--sidebar-muted);
+}
+
+.signOut {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--sidebar-muted);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 999px;
+}
+
+.signOut:hover {
+  color: var(--sidebar-text-strong);
+  border-color: #3a3a3a;
+}
+
+.mfaWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fec84b;
+  background: rgb(247 144 9 / 10%);
+  border: 1px solid rgb(247 144 9 / 28%);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.mfaWarning svg {
+  flex: none;
+}
+
+/* ---------- Main area ---------- */
+
+.main {
+  min-width: 0;
+  outline: none;
+}
+
+.content {
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-7) var(--space-7);
+}
+
+@media (max-width: 1280px) {
+  .content {
+    padding: var(--space-6) var(--space-6) var(--space-7);
+  }
+}
+
+.centered {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  color: var(--colour-text-muted);
+  text-align: center;
+}
+
+/* The emblem is white; on the light canvas it is shown in ink instead. */
+.centered .brandMark {
+  width: 2.5rem;
+  height: 2.5rem;
+  filter: brightness(0);
+}
+
+@media (prefers-color-scheme: dark) {
+  .centered .brandMark {
+    filter: none;
+  }
+}
+
+/* ---------- Phone ---------- */
+
+.mobileBar,
+.scrim {
+  display: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--sidebar-text-strong);
+}
+
+.menuButton {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--sidebar-text-strong);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileBar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+    background: var(--sidebar-bg);
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: min(18rem, 85vw);
+    transform: translateX(-100%);
+    /* Hidden, not just moved: a closed drawer's links must not take focus. */
+    visibility: hidden;
+    transition:
+      transform 180ms ease,
+      visibility 0s linear 180ms;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 180ms ease;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgb(0 0 0 / 55%);
+  }
+
+  .content {
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+}

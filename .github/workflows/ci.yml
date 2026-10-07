@@ -1,0 +1,199 @@
+# CI (SVX-TECH-001 sections 2.3, 13).
+#
+# The important structural choice: integration tests run against a real
+# PostgreSQL 17 using the unprivileged application role, never SQLite and never
+# a superuser. A superuser bypasses row-level security, which would make the
+# tenant isolation tests pass while testing nothing (section 13.2).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  NODE_VERSION: "24"
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: svx_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DJANGO_SECRET_KEY: ci-only-secret-key-not-used-on-any-server-000000000
+      DATABASE_URL: postgres://svx_app:svx_app_pw@localhost:5432/svx_test
+      MIGRATION_DATABASE_URL: postgres://svx_owner:svx_owner_pw@localhost:5432/svx_test
+      SCHEDULER_DATABASE_URL: postgres://svx_scheduler:svx_sched_pw@localhost:5432/svx_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the unprivileged database roles
+        # Mirrors infra/postgres/00-roles.sh. The app role must not own the
+        # tables and must not hold BYPASSRLS.
+        run: |
+          psql "postgres://postgres:postgres@localhost:5432/svx_test" <<'SQL'
+          CREATE ROLE svx_owner     LOGIN PASSWORD 'svx_owner_pw' NOBYPASSRLS CREATEDB;
+          CREATE ROLE svx_app       LOGIN PASSWORD 'svx_app_pw'   NOBYPASSRLS;
+          CREATE ROLE svx_scheduler LOGIN PASSWORD 'svx_sched_pw' NOBYPASSRLS;
+          ALTER SCHEMA public OWNER TO svx_owner;
+          GRANT ALL ON SCHEMA public TO svx_owner;
+          REVOKE ALL ON SCHEMA public FROM PUBLIC;
+          GRANT USAGE ON SCHEMA public TO svx_app, svx_scheduler;
+          ALTER DEFAULT PRIVILEGES FOR ROLE svx_owner IN SCHEMA public
+              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO svx_app;
+          ALTER DEFAULT PRIVILEGES FOR ROLE svx_owner IN SCHEMA public
+              GRANT USAGE, SELECT ON SEQUENCES TO svx_app;
+          SQL
+        env:
+          PGPASSWORD: postgres
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        working-directory: apps/api
+        # --locked fails on drift between pyproject and the lockfile.
+        run: uv sync --locked
+
+      - name: Lint
+        working-directory: apps/api
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Check for missing migrations
+        working-directory: apps/api
+        # A model change without a migration passes every test and then fails
+        # on deploy. Catch it here.
+        run: uv run python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations as the owner role
+        working-directory: apps/api
+        run: uv run python manage.py migrate --database=owner --no-input
+
+      # Section 13.3 targets 85% branch coverage in domain services. Every
+      # service module now exceeds that, and the whole-codebase figure reached
+      # it too, so the gate is set at the specified number rather than below it.
+      - name: Run tests
+        working-directory: apps/api
+        run: |
+          uv run pytest \
+            --cov=modules \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=85
+
+      - name: Generate the OpenAPI schema
+        working-directory: apps/api
+        run: |
+          uv run python manage.py spectacular \
+            --file ../../docs/api/openapi.json --validate --fail-on-warn
+
+      - name: Fail if the committed schema is stale
+        # The frontend generates its types from this file; a drifted schema
+        # silently produces types that do not match the server.
+        run: git diff --exit-code docs/api/openapi.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: apps/api/coverage.xml
+
+  frontend:
+    name: Frontend tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        working-directory: apps/web
+        run: pnpm typecheck
+
+      - name: Unit tests
+        working-directory: apps/web
+        run: pnpm test
+
+      - name: Build
+        working-directory: apps/web
+        # Assets are built here, never on the pilot server (section 11.3).
+        run: pnpm build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: apps/web/dist
+
+  security:
+    name: Dependency and secret review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Python advisory scan
+        working-directory: apps/api
+        run: |
+          uv sync --locked
+          uv run --with pip-audit pip-audit --strict || {
+            echo "::error::Known advisories found. Triage before merging;"
+            echo "::error::an exposed critical vulnerability is not deferred"
+            echo "::error::to the monthly review cycle (section 2.3)."
+            exit 1
+          }
+
+      - name: Software bill of materials
+        working-directory: apps/api
+        run: uv run --with cyclonedx-bom cyclonedx-py environment -o ../../sbom.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json

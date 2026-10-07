@@ -1,0 +1,213 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tasks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.alertsColumn {
+  position: sticky;
+  top: var(--space-5);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--colour-border);
+}
+
+.panelHeader h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+
+.panelEmpty {
+  margin: 0;
+  padding: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+}
+
+.count {
+  font-weight: 500;
+  color: var(--colour-text-subtle);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+}
+
+.danger {
+  background: var(--colour-danger-dot);
+}
+
+.warning {
+  background: var(--colour-warning-dot);
+}
+
+.info {
+  background: var(--colour-info-dot);
+}
+
+.neutral {
+  background: var(--colour-neutral-dot);
+}
+
+/* ---------- Task rows ---------- */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Flex rather than a grid so the row reflows on the width of its card, not the
+   viewport: the card shares the page with the alerts panel, so a wide window
+   can still leave it narrow. When the title cannot keep 16rem, the due time
+   and actions wrap underneath instead of squeezing it to one letter a line. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--colour-border);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.row:hover {
+  background: var(--colour-surface-hover);
+}
+
+.rowOverdue {
+  box-shadow: inset 3px 0 0 var(--colour-danger-dot);
+}
+
+.rowMain {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rowContext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-1) 0 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.0625rem 0.4375rem;
+  font-size: var(--text-xs);
+  color: var(--colour-text-muted);
+  background: var(--colour-surface-sunken);
+  border: 1px solid var(--colour-border);
+  border-radius: 999px;
+}
+
+.rowMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: var(--text-sm);
+}
+
+.due,
+.dueOverdue,
+.rescheduled {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.due {
+  color: var(--colour-text-muted);
+}
+
+.dueOverdue {
+  color: var(--colour-danger);
+  font-weight: 600;
+}
+
+.rescheduled {
+  font-size: var(--text-xs);
+  color: var(--colour-warning);
+  white-space: normal;
+}
+
+.rowActions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+@media (max-width: 760px) {
+  .due,
+  .dueOverdue {
+    white-space: normal;
+  }
+}
+
+/* ---------- Alerts ---------- */
+
+.alertList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--colour-border);
+}
+
+.alert:first-child {
+  border-top: 0;
+}
+
+.alertTitle {
+  margin: 0;
+  font-weight: 600;
+}
+
+.alertCause {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+}

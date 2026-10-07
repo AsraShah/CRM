@@ -1,0 +1,60 @@
+[project]
+name = "scalevexo-api"
+version = "0.1.0"
+description = "ScaleVexo CRM API (SVX-TECH-001 Release 1)"
+requires-python = "==3.13.*"
+
+# Baseline families per SVX-TECH-001 section 1.1.
+# Exact patch versions are resolved into uv.lock and frozen at G0 (RD02).
+dependencies = [
+    "django~=5.2",
+    "djangorestframework~=3.16",
+    "psycopg[binary]~=3.2",
+    "django-allauth[mfa]~=65.0",
+    "argon2-cffi~=23.1",
+    "django-filter~=25.1",
+    "drf-spectacular~=0.28",
+    "gunicorn~=23.0",
+    "pydantic~=2.9",
+    "httpx~=0.28",
+    # >=50: clears PYSEC-2026-35/2141/3552/3553/3554 and GHSA-537c-gmf6-5ccf.
+    "cryptography>=50.0.0",
+    "phonenumbers~=8.13",
+    "dj-database-url~=2.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",  # PYSEC-2026-1845
+    "pytest-django~=4.9",
+    "pytest-cov~=6.0",
+    "factory-boy~=3.3",
+    "time-machine~=2.16",
+    "ruff~=0.8",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ", "S", "C4", "RET", "SIM"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "concurrency: tests that open independent database connections",
+    "rls: tests that assert PostgreSQL row-level security behaviour",
+]
+
+[tool.coverage.run]
+source = ["modules"]
+omit = ["*/migrations/*", "*/tests/*"]

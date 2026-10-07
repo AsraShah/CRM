@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Node
+node_modules/
+apps/web/dist/
+.vite/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local artifacts
+/media/
+/private-files/
+/staticfiles/
+*.log
+.DS_Store
+Thumbs.db
+
+# Test output
+/test-results/
+apps/web/test-results/
+/playwright-report/
+apps/web/playwright-report/
