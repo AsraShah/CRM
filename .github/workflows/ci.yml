@@ -112,7 +112,7 @@ jobs:
       - name: Generate the OpenAPI schema
         working-directory: apps/api
         run: |
-          uv run python manage.py spectacular \
+          uv run python manage.py spectacular --format openapi-json \
             --file ../../docs/api/openapi.json --validate --fail-on-warn
 
       - name: Fail if the committed schema is stale
