@@ -15,9 +15,7 @@ import os
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-secret-key-not-for-any-server")
 # A valid Fernet key (base64 of "test-only-key-not-for-any-server"). Required
 # because DEBUG is off here, so the deployment checks refuse to run without one.
-os.environ.setdefault(
-    "CREDENTIAL_ENCRYPTION_KEY", "dGVzdC1vbmx5LWtleS1ub3QtZm9yLWFueS1zZXJ2ZXI="
-)
+os.environ.setdefault("CREDENTIAL_ENCRYPTION_KEY", "dGVzdC1vbmx5LWtleS1ub3QtZm9yLWFueS1zZXJ2ZXI=")
 os.environ.setdefault("DATABASE_URL", "postgres://svx_app:svx_app_pw@127.0.0.1:5432/svx_test")
 os.environ.setdefault(
     "MIGRATION_DATABASE_URL",
