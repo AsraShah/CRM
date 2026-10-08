@@ -20,11 +20,27 @@ apps/web/dist/
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
 
-# Local artifacts
-/media/
-/private-files/
-/staticfiles/
+# Database dumps and backups can hold every customer record.
+*.dump
+*.sql.gz
+*.sqlite3
+*.backup
+
+# Local artifacts. Unanchored, so the API's own copies under apps/api/ are
+# covered too: private-files holds uploaded customer spreadsheets.
+media/
+private-files/
+staticfiles/
+
+# Editors
+.vs/
+.vscode/
+.idea/
 *.log
 .DS_Store
 Thumbs.db
