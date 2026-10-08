@@ -23,6 +23,10 @@
 	# Django owns the API, the account pages and the probes.
 	@backend path /api/* /accounts/* /internal-admin/* /static/* /healthz /readyz
 	handle @backend {
+		# Refused at the edge: the largest legitimate body is a 5 MB import.
+		request_body {
+			max_size 6MB
+		}
 		reverse_proxy api:8000 {
 			header_up X-Forwarded-Proto {scheme}
 			header_up X-Real-IP {remote_host}

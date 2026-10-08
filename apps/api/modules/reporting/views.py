@@ -304,8 +304,12 @@ class CashReceiptViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Works
         opportunity = None
         if data.get("opportunity"):
             opportunity = Opportunity.objects.filter(
-                pk=data["opportunity"], workspace_id=workspace_id
+                pk=data["opportunity"], workspace_id=workspace_id, deleted_at__isnull=True
             ).first()
+            # Refused rather than dropped, or the receipt would be stored
+            # without the deal it was recorded against.
+            if opportunity is None:
+                raise ValidationFailed("That deal is not available.")
 
         # Mirrors ck_receipt_positive_unless_adjustment, so a bad amount is a
         # 400 the caller can fix rather than a 500 from the constraint.

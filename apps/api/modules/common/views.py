@@ -23,6 +23,7 @@ class LivenessView(APIView):
     """
 
     authentication_classes: list = []
+    throttle_classes: list = []
     permission_classes = [AllowAny]
     serializer_class = HealthSerializer
 
@@ -39,6 +40,7 @@ class ReadinessView(APIView):
     """Can the process serve traffic? Checks the database without leaking detail."""
 
     authentication_classes: list = []
+    throttle_classes: list = []
     permission_classes = [AllowAny]
     serializer_class = HealthSerializer
 

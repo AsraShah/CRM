@@ -139,8 +139,6 @@ if _scheduler_url:
 
 SCHEDULER_DB_ALIAS = "scheduler" if _scheduler_url else "default"
 
-DATABASE_ROUTERS: list[str] = []
-
 # --------------------------------------------------------------------------
 # Authentication (SVX-TECH-001 section 5.2)
 # --------------------------------------------------------------------------
@@ -210,12 +208,31 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "modules.common.exceptions.scalevexo_exception_handler",
-    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
+    # Every authenticated caller has a ceiling, whatever the endpoint; the
+    # scoped rates add tighter limits to the few expensive actions.
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.UserRateThrottle",
+        "modules.common.throttling.ActionScopedRateThrottle",
+    ],
     "DEFAULT_THROTTLE_RATES": {
+        "user": "3000/hour",
         "imports": "10/hour",
         "ai": "20/day",
         "auth": "20/hour",
     },
+}
+
+# Throttle counters and allauth's login lockouts live in the cache. The default
+# in-process cache would forget them whenever Gunicorn recycles its worker
+# (--max-requests), resetting every brute-force limit, so they are kept in
+# PostgreSQL like the job queue (ADR002). The table is created by
+# common/migrations/0006_cache_table.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "svx_cache",
+        "OPTIONS": {"MAX_ENTRIES": 10_000},
+    }
 }
 
 SPECTACULAR_SETTINGS = {
@@ -251,8 +268,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Private uploads live outside the web root and are served only through an
 # authorised download view using random keys.
 PRIVATE_FILE_ROOT = Path(env("PRIVATE_FILE_ROOT", str(BASE_DIR / "private-files")))
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024
-MAX_WORKSPACE_FILE_BYTES = 1 * 1024 * 1024 * 1024
 
 # Import limits (section 6.1).
 IMPORT_MAX_BYTES = 5 * 1024 * 1024

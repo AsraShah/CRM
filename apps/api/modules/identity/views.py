@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from modules.common import limits
+from modules.common.exceptions import ValidationFailed
 from modules.common.permissions import HasWorkspacePermission, IsWorkspaceMember
 from modules.common.viewsets import WorkspaceAPIView, WorkspaceScopedViewSet
 from modules.identity import services
@@ -117,6 +118,13 @@ class MembershipViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Worksp
                 id=serializer.validated_data["team"],
                 workspace_id=request.membership.workspace_id,
             ).first()
+            # Refused rather than dropped: inviting someone to no team when a
+            # team was asked for would silently change what they can see.
+            if team is None:
+                raise ValidationFailed(
+                    "That team is not available.",
+                    field_errors={"team": ["Choose a team in this workspace."]},
+                )
 
         invitation, token = services.invite_member(
             actor_membership=request.membership,
@@ -140,8 +148,8 @@ class MembershipViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Worksp
         )
 
     def get_permissions(self):
-        # required_permission is read by HasWorkspacePermission, and @action
-        # sets it after instantiation, so map it here for the detail routes.
+        # HasWorkspacePermission reads required_permission, which differs per
+        # action, so it has to be set before the permission check runs.
         mapping = {
             "suspend": "membership.manage",
             "reinstate": "membership.manage",

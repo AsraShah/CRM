@@ -6,12 +6,13 @@ PATCH, so a stage can only move through the service that validates it.
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.http import HttpResponse
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from modules.common.exceptions import NotFound, ValidationFailed
+from modules.common.exceptions import NotFound, PayloadTooLarge, ValidationFailed
 from modules.common.idempotency import IDEMPOTENCY_HEADER, complete, reserve
 from modules.common.permissions import HasWorkspacePermission
 from modules.common.viewsets import WorkspaceScopedViewSet
@@ -417,6 +418,9 @@ class ImportBatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Works
     permission_classes = [HasWorkspacePermission]
     required_permission = "import.run"
     throttle_scope = "imports"
+    # Only an upload starts new work; previewing and polling a batch must not
+    # spend the allowance.
+    throttle_scope_actions = {"create"}
 
     def create(self, request):
         """Upload a CSV. Nothing is written to the contact base yet."""
@@ -425,6 +429,12 @@ class ImportBatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Works
             raise ValidationFailed(
                 "A CSV file is required.",
                 field_errors={"file": ["This field is required."]},
+            )
+        # Checked before read(): the service checks too, but only after the
+        # whole file is in memory, which an oversized upload must never reach.
+        if upload.size > settings.IMPORT_MAX_BYTES:
+            raise PayloadTooLarge(
+                f"The file exceeds the {settings.IMPORT_MAX_BYTES // (1024 * 1024)} MB limit."
             )
         batch = import_service.store_upload(
             membership=request.membership,

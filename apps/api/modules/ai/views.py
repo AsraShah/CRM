@@ -74,6 +74,9 @@ class AIDraftViewSet(
     queryset = AIDraft.objects.all()
     permission_classes = [IsWorkspaceMember]
     throttle_scope = "ai"
+    # Only generating a draft costs anything; listing drafts and recording a
+    # decision must not use up the day's allowance.
+    throttle_scope_actions = {"create"}
 
     def list(self, request, *args, **kwargs):
         with workspace_context(request.membership.workspace_id):
@@ -165,6 +168,12 @@ class AIBudgetView(WorkspaceAPIView):
 
     serializer_class = AIBudgetStatusSerializer
 
+    def get_permissions(self):
+        # Any member may read the position; only an administrator may toggle.
+        if self.request.method == "POST":
+            return [IsWorkspaceAdministrator()]
+        return super().get_permissions()
+
     @extend_schema(responses={200: AIBudgetStatusSerializer}, summary="AI budget position")
     def get(self, request):
         return Response(budget.status())
@@ -175,8 +184,6 @@ class AIBudgetView(WorkspaceAPIView):
         summary="Toggle the AI kill switch",
     )
     def post(self, request):
-        self.permission_classes = [IsWorkspaceAdministrator]
-        self.check_permissions(request)
         # Typed, not bool(request.data[...]): the string "false" is truthy, so
         # the old coercion would have switched AI on when asked to switch it off.
         serializer = KillSwitchSerializer(data=request.data)

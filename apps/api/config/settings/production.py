@@ -5,7 +5,7 @@
 """
 
 from .base import *  # noqa: F403
-from .base import APP_ORIGIN, env, env_list
+from .base import APP_ORIGIN, REST_FRAMEWORK, env, env_list
 
 DEBUG = False
 
@@ -28,6 +28,13 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 X_FRAME_OPTIONS = "DENY"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+
+# Behind Caddy, REMOTE_ADDR is the proxy for every request, so per-IP limits
+# would put every visitor in one bucket: five failed logins from anyone would
+# lock everyone out. Caddy discards any client-sent X-Forwarded-For and writes
+# the real peer address, so its last entry is the one to trust.
+REST_FRAMEWORK = {**REST_FRAMEWORK, "NUM_PROXIES": 1}
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 # Credential encryption is mandatory once any provider account can be stored.
 if not env("CREDENTIAL_ENCRYPTION_KEY"):

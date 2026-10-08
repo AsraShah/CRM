@@ -42,6 +42,10 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
+# Throttle and lockout counters must not outlive one test, which a database
+# cache outside the test transaction would allow.
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
